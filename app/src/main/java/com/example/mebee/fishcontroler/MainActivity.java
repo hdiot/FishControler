@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -88,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private Button BT_Connect;
     private Button BT_Disconnect;
     private EditText ET_ConnectState;
+    private Switch SW_ConnectTip;
 
 
     private Socket mSocket;
@@ -118,6 +121,10 @@ public class MainActivity extends AppCompatActivity {
                 case SOCKET_CONNECT_SUCCEED:
                     setViewStates(true);
                     Toast.makeText(MainActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
+                    horizontalRocker.setFocusable(true);
+                    verticalRocker.setFocusable(true);
+                    verticalRocker.setFocusableInTouchMode(true);
+                    horizontalRocker.setFocusableInTouchMode(true);
                     mAlertDialog.dismiss();
                     break;
                 case SOCKET_DISCONNECTED:
@@ -138,13 +145,13 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * 处理接收到的shuju
+     * 处理接收到的数据
      *
      * @param s String 接收到字符串
      */
     private void disposeReceiveData(String s) {
         if (s != "") {
-            Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
             if (s.charAt(0) == '0') {
                 String mHumidity =  s.substring(1,3);
 
@@ -181,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 
     private int strToInt(String s) {
@@ -234,8 +240,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void direction(RockerView.Direction direction) {
                 if (!mConnectState) {
-                    Toast.makeText(MainActivity.this, "请先连接设备", Toast.LENGTH_SHORT).show();
-                    mAlertDialog.show();
+                    if (SW_ConnectTip.isChecked()) {
+                        mAlertDialog.show();
+                    }
+                    //Toast.makeText(MainActivity.this, "请先连接设备", Toast.LENGTH_SHORT).show();
                 } else {
                     mHorizontalDirection = ConstantValues.VERTICALDIR_CENTER;
                     if (direction == RockerView.Direction.DIRECTION_CENTER) {
@@ -298,8 +306,10 @@ public class MainActivity extends AppCompatActivity {
             public void direction(RockerView.Direction direction) {
 
                 if (!mConnectState) {
-                    Toast.makeText(MainActivity.this, "请先连接设备", Toast.LENGTH_SHORT).show();
-                    mAlertDialog.show();
+                    //Toast.makeText(MainActivity.this, "请先连接设备", Toast.LENGTH_SHORT).show();
+                    if (SW_ConnectTip.isChecked()) {
+                        mAlertDialog.show();
+                    }
                 } else {
                     mVerticalDirection = ConstantValues.VERTICALDIR_CENTER;
                     if (direction == RockerView.Direction.DIRECTION_CENTER) {
@@ -366,17 +376,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 初始化连接设备的 AlertDialog
+     * 初始化连接设备的 AlertDialog（弹窗）
      */
     public void initAlert() {
         mBuilder = new AlertDialog.Builder(MainActivity.this);
         mAlertDialog = mBuilder.create();
+
+        Window window = mAlertDialog.getWindow();
+        WindowManager.LayoutParams layoutParams = window.getAttributes();
+        layoutParams.alpha = 0.8f;
+        window.setAttributes(layoutParams);
+
         mAlertView = View.inflate(getApplicationContext(), R.layout.menu_dialog_view, null);
         ET_IP = (EditText) mAlertView.findViewById(R.id.et_menu_dia_ip);
         ET_Port = (EditText) mAlertView.findViewById(R.id.et_menu_dia_port);
         ET_ConnectState = (EditText) mAlertView.findViewById(R.id.et_menu_dia_state);
         BT_Disconnect = (Button) mAlertView.findViewById(R.id.bt_menu_dia_disconnect);
         BT_Connect = (Button) mAlertView.findViewById(R.id.bt_menu_dia_connect);
+        SW_ConnectTip = (Switch) mAlertView.findViewById(R.id.connent_tip);
 
         BT_Disconnect.setEnabled(mConnectState);
         BT_Connect.setEnabled(!mConnectState);
@@ -385,6 +402,8 @@ public class MainActivity extends AppCompatActivity {
             ET_ConnectState.setText("已连接");
         else
             ET_ConnectState.setText("未连接");
+
+        // 为按键设置监听
 
         BT_Connect.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -411,9 +430,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        SW_ConnectTip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    SW_ConnectTip.setText(SW_ConnectTip.getTextOn());
+                }else {
+                    SW_ConnectTip.setText(SW_ConnectTip.getTextOff());
+                }
+            }
+        });
+
         mAlertDialog.setView(mAlertView, 0, 0, 0, 0);
     }
 
+
+    /**
+     * 初始化Toolbar 的菜单
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -495,9 +532,18 @@ public class MainActivity extends AppCompatActivity {
 
         if (mHorizontalDirection.equals("")) {
             mHorizontalDirection = "110";
-            mDirection = getSpeechState()+mHorizontalDirection + mVerticalDirection + getCameraState() + getElectromagnetState();
+            mDirection = getSpeechState()
+                    + mHorizontalDirection
+                    + mVerticalDirection
+                    + getCameraState()
+                    + getElectromagnetState();
+            mHorizontalDirection = "";
         } else {
-            mDirection = getSpeechState()+mVerticalDirection + mHorizontalDirection + getCameraState() + getElectromagnetState();
+            mDirection = getSpeechState()
+                    + mVerticalDirection
+                    + mHorizontalDirection
+                    + getCameraState()
+                    + getElectromagnetState();
         }
         new Thread(mSendDirectionRunnable).start();
     }
@@ -564,8 +610,6 @@ public class MainActivity extends AppCompatActivity {
 
                 int tmp;
                 char[] buf = new char[1024];
-                String receiveTxt = "";
-
                 while ((tmp = mReader.read(buf)) != -1) {
                     Log.d(SocketReceiveTag, new String(buf, 0, tmp));
                     Message msg = new Message();
@@ -608,18 +652,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private String getSpeechState() {
-        return swSpeech.isChecked() ?  HEIGHTSPEECH : LOWSPEECH;
-    }
-
-    private String getCameraState() {
-        return swCamera.isChecked() ? CAMERAON : CAMERAOFF;
-    }
-
-    private String getElectromagnetState(){
-        return  swElectromagnet.isChecked() ? ElectromagnetON: ElectromagnetOFF;
-    }
-
 
     /**
      * socket 断开
@@ -641,4 +673,29 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+
+    /**
+     * @return 获取当速度开关状态
+     */
+    private String getSpeechState() {
+        return swSpeech.isChecked() ?  HEIGHTSPEECH : LOWSPEECH;
+    }
+
+    /**
+     * @return 获取摄像头开关状态
+     */
+    private String getCameraState() {
+        return swCamera.isChecked() ? CAMERAON : CAMERAOFF;
+    }
+
+    /**
+     * @return 获取电磁铁开关状态
+     */
+    private String getElectromagnetState(){
+        return  swElectromagnet.isChecked() ? ElectromagnetON: ElectromagnetOFF;
+    }
+
+
+
 }

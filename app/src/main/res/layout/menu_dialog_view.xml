@@ -14,6 +14,15 @@
         android:textColor="#fff"
         android:textSize="20sp"
         android:text="@string/connect_device"/>
+    <Switch
+        android:id="@+id/connent_tip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#fff"
+        android:checked="true"
+        android:text="连接提醒:关闭"
+        android:textOn="连接提醒:开启"
+        android:textOff="连接提醒:关闭"/>
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"

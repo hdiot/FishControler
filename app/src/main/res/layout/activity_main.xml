@@ -6,14 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@mipmap/fish_bg"
+    android:background="@mipmap/whale"
     tools:context="com.example.mebee.fishcontroler.MainActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="30dp"
-        android:background="#00000000">
+        android:background="#50000000">
 
     </android.support.v7.widget.Toolbar>
 
@@ -117,8 +117,9 @@
                 android:id="@+id/vertical_rocker"
                 android:layout_width="45dp"
                 android:layout_height="wrap_content"
-                app:areaBackground="@color/colorPrimary"
-                app:rockerBackground="#7036a8ff"
+                app:areaBackground="#64000000"
+                app:rockerBackground="@mipmap/rocker"
+                app:rockerAreaShape="RECTANGLE"
                 app:rockerCallBackMode="CALL_BACK_MODE_STATE_CHANGE"
                 app:rockerScale="0.3"
                 app:rockerSpeedLevel="10" />
@@ -141,8 +142,9 @@
                 android:id="@+id/horizontal_rocker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:areaBackground="@mipmap/rocker_base"
+                app:areaBackground="#64000000"
                 app:rockerBackground="@mipmap/rocker"
+                app:rockerAreaShape="CIRCLE"
                 app:rockerCallBackMode="CALL_BACK_MODE_STATE_CHANGE"
                 app:rockerScale="0.5"
                 app:rockerSpeedLevel="10" />

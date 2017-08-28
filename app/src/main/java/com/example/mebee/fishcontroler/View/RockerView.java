@@ -30,6 +30,7 @@ public class RockerView extends View {
     private static final float DEFAULT_ROCKER_SCALE = 0.5f;//默认半径为背景的1/2
 
     private Paint mAreaBackgroundPaint;
+    private AreaBgShape mAreaBgShap = AreaBgShape.CIRCLE;
     private Paint mRockerPaint;
 
     private Point mRockerPosition;
@@ -39,6 +40,7 @@ public class RockerView extends View {
     private float mRockerScale;
 
     private int mRockerRadius;
+
 
     private CallBackMode mCallBackMode = CallBackMode.CALL_BACK_MODE_MOVE;
     private OnAngleChangeListener mOnAngleChangeListener;
@@ -101,6 +103,7 @@ public class RockerView extends View {
     private Bitmap mRockerBitmap;
     private int mRockerColor;
     private boolean isColor = false;
+
 
 
     public RockerView(Context context, AttributeSet attrs) {
@@ -184,6 +187,8 @@ public class RockerView extends View {
             mRockerBackgroundMode = ROCKER_BACKGROUND_MODE_DEFAULT;
         }
 
+        // 移动范围背景
+        mAreaBgShap = getAreaBgShape(typedArray.getInt(R.styleable.RockerView_rockerAreaShape,0));
         // 摇杆半径
         mRockerScale = typedArray.getFloat(R.styleable.RockerView_rockerScale, DEFAULT_ROCKER_SCALE);
         //距离级别
@@ -191,6 +196,7 @@ public class RockerView extends View {
         //回调模式
         mCallBackMode = getCallBackMode(typedArray.getInt(R.styleable.RockerView_rockerCallBackMode, 0));
         typedArray.recycle();
+
     }
 
     @Override
@@ -248,14 +254,16 @@ public class RockerView extends View {
         } else if (AREA_BACKGROUND_MODE_COLOR == mAreaBackgroundMode) {
             // 色值
             mAreaBackgroundPaint.setColor(mAreaColor);
-            //mAreaBackgroundPaint.setColor(Color.parseColor("#555555"));
-            //canvas.drawCircle(mCenterPoint.x, mCenterPoint.y, mAreaRadius, mAreaBackgroundPaint);
-            isColor = true;
-            canvas.drawRect(mCenterPoint.x-mAreaRadius/10,mCenterPoint.y-mAreaRadius,mCenterPoint.x+mAreaRadius/10,mCenterPoint.y+mAreaRadius,mAreaBackgroundPaint);
 
-            //mAreaBackgroundPaint.setColor(Color.RED);
-            //canvas.drawRect(mCenterPoint.x-mAreaRadius/10,mCenterPoint.y-mAreaRadius,mCenterPoint.x+mAreaRadius/10,mCenterPoint.y-mAreaRadius/2-mRockerRadius/2,mAreaBackgroundPaint);
-            //canvas.drawRect(mCenterPoint.x-mAreaRadius/10,mCenterPoint.y+mAreaRadius/2+mRockerRadius/2,mCenterPoint.x+mAreaRadius/10,mCenterPoint.y+mAreaRadius,mAreaBackgroundPaint);
+            if (mAreaBgShap == AreaBgShape.CIRCLE) {
+                canvas.drawCircle(mCenterPoint.x, mCenterPoint.y, mAreaRadius, mAreaBackgroundPaint);
+            } else if (mAreaBgShap == AreaBgShape.RECTANGLE){
+                canvas.drawRect(mCenterPoint.x-mAreaRadius/10,mCenterPoint.y-mAreaRadius,mCenterPoint.x+mAreaRadius/10,mCenterPoint.y+mAreaRadius,mAreaBackgroundPaint);
+                //mAreaBackgroundPaint.setColor(Color.RED);
+                //canvas.drawRect(mCenterPoint.x-mAreaRadius/10,mCenterPoint.y-mAreaRadius,mCenterPoint.x+mAreaRadius/10,mCenterPoint.y-mAreaRadius/2-mRockerRadius/2,mAreaBackgroundPaint);
+                //canvas.drawRect(mCenterPoint.x-mAreaRadius/10,mCenterPoint.y+mAreaRadius/2+mRockerRadius/2,mCenterPoint.x+mAreaRadius/10,mCenterPoint.y+mAreaRadius,mAreaBackgroundPaint);
+            }
+
         } else {
             // 其他或者未设置
             mAreaBackgroundPaint.setColor(Color.GRAY);
@@ -293,7 +301,7 @@ public class RockerView extends View {
                 baseDistance = mAreaRadius+2;
                 //Log.d("baseDistance",baseDistance+"");
                 mRockerPosition = getRockerPositionPoint(mCenterPoint, new Point((int) moveX, (int) moveY), mAreaRadius + mRockerRadius, mRockerRadius);
-                if (isColor)
+                if (mAreaBgShap == AreaBgShape.RECTANGLE)
                     moveRocker(mCenterPoint.x, mRockerPosition.y);
                 else
                     moveRocker(mRockerPosition.x, mRockerPosition.y);
@@ -342,7 +350,7 @@ public class RockerView extends View {
             // 计算要显示的位置
             int showPointX = (int) (centerPoint.x + (regionRadius - rockerRadius) * Math.cos(radian));
             int showPointY = (int) (centerPoint.y + (regionRadius - rockerRadius) * Math.sin(radian));
-            if (!isColor)
+            if (mAreaBgShap == AreaBgShape.CIRCLE)
                 callBack(angle, (int) Math.sqrt((showPointX - centerPoint.x) * (showPointX - centerPoint.x) + (showPointY - centerPoint.y) * (showPointY - centerPoint.y)),0,0);
             return new Point(showPointX, showPointY);
         }
@@ -646,6 +654,11 @@ public class RockerView extends View {
         }
     }
 
+    private enum AreaBgShape{
+        CIRCLE,
+        RECTANGLE
+    }
+
     /**
      * 回调模式
      */
@@ -657,6 +670,7 @@ public class RockerView extends View {
         //只有状态变化或者距离变化的时候才回调
         CALL_BACK_MODE_STATE_DISTANCE_CHANGE
     }
+
 
     /**
      * 设置回调模式
@@ -772,5 +786,15 @@ public class RockerView extends View {
                 return CallBackMode.CALL_BACK_MODE_STATE_CHANGE;
         }
         return mCallBackMode;
+    }
+
+    private AreaBgShape getAreaBgShape(int shap){
+        switch (shap) {
+            case 0:
+                return AreaBgShape.CIRCLE;
+            case 1:
+                return AreaBgShape.RECTANGLE;
+        }
+        return mAreaBgShap;
     }
 }
